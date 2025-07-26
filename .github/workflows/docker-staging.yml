@@ -2,6 +2,8 @@ name: Build staging Docker image
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ staging ]
 
 env:
   REGISTRY: ghcr.io
