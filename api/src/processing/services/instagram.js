@@ -302,6 +302,20 @@ export default function instagram(obj) {
         const shortcodeMedia = data?.gql_data?.shortcode_media || data?.gql_data?.xdt_shortcode_media;
         const sidecar = shortcodeMedia?.edge_sidecar_to_children;
 
+        const postMetadata = {
+            caption: shortcodeMedia?.edge_media_to_caption?.edges?.[0]?.node?.text || "",
+            author: {
+                username: shortcodeMedia?.owner?.username || "",
+                displayName: shortcodeMedia?.owner?.full_name || "",
+            },
+            createTime: shortcodeMedia?.taken_at_timestamp ? new Date(shortcodeMedia.taken_at_timestamp * 1000).toISOString() : null,
+            stats: {
+                likes: shortcodeMedia?.edge_media_preview_like?.count || 0,
+                comments: shortcodeMedia?.edge_media_to_comment?.count || 0,
+                views: shortcodeMedia?.video_view_count || 0,
+            },
+        };
+
         if (sidecar) {
             const picker = sidecar.edges.filter(e => e.node?.display_url)
                 .map((e, i) => {
@@ -338,14 +352,15 @@ export default function instagram(obj) {
                     }
                 });
 
-            if (picker.length) return { picker }
+            if (picker.length) return { picker, postMetadata }
         }
 
         if (shortcodeMedia?.video_url) {
             return {
                 urls: shortcodeMedia.video_url,
                 filename: `instagram_${id}.mp4`,
-                audioFilename: `instagram_${id}_audio`
+                audioFilename: `instagram_${id}_audio`,
+                postMetadata
             }
         }
 
@@ -354,11 +369,26 @@ export default function instagram(obj) {
                 urls: shortcodeMedia.display_url,
                 isPhoto: true,
                 filename: `instagram_${id}.jpg`,
+                postMetadata
             }
         }
     }
 
     function extractNewPost(data, id, alwaysProxy) {
+        const postMetadata = {
+            caption: data.caption?.text || "",
+            author: {
+                username: data.user?.username || "",
+                displayName: data.user?.full_name || "",
+            },
+            createTime: data.taken_at ? new Date(data.taken_at * 1000).toISOString() : null,
+            stats: {
+                likes: data.like_count || 0,
+                comments: data.comment_count || 0,
+                views: data.view_count || data.play_count || 0,
+            },
+        };
+
         const carousel = data.carousel_media;
         if (carousel) {
             const picker = carousel.filter(e => e?.image_versions2)
@@ -396,19 +426,21 @@ export default function instagram(obj) {
                     }
                 });
 
-            if (picker.length) return { picker }
+            if (picker.length) return { picker, postMetadata }
         } else if (data.video_versions) {
             const video = data.video_versions.reduce((a, b) => a.width * a.height < b.width * b.height ? b : a)
             return {
                 urls: video.url,
                 filename: `instagram_${id}.mp4`,
-                audioFilename: `instagram_${id}_audio`
+                audioFilename: `instagram_${id}_audio`,
+                postMetadata
             }
         } else if (data.image_versions2?.candidates) {
             return {
                 urls: data.image_versions2.candidates[0].url,
                 isPhoto: true,
                 filename: `instagram_${id}.jpg`,
+                postMetadata
             }
         }
     }
@@ -498,12 +530,27 @@ export default function instagram(obj) {
         const item = media.items.find(m => m.pk === id);
         if (!item) return { error: "fetch.empty" };
 
+        const postMetadata = {
+            caption: "",
+            author: {
+                username: media.user?.username || "",
+                displayName: media.user?.full_name || "",
+            },
+            createTime: item.taken_at ? new Date(item.taken_at * 1000).toISOString() : null,
+            stats: {
+                likes: 0,
+                comments: 0,
+                views: item.view_count || 0,
+            },
+        };
+
         if (item.video_versions) {
             const video = item.video_versions.reduce((a, b) => a.width * a.height < b.width * b.height ? b : a)
             return {
                 urls: video.url,
                 filename: `instagram_${id}.mp4`,
-                audioFilename: `instagram_${id}_audio`
+                audioFilename: `instagram_${id}_audio`,
+                postMetadata
             }
         }
 
@@ -512,6 +559,7 @@ export default function instagram(obj) {
                 urls: item.image_versions2.candidates[0].url,
                 isPhoto: true,
                 filename: `instagram_${id}.jpg`,
+                postMetadata
             }
         }
 

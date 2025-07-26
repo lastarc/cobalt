@@ -39,14 +39,16 @@ export function createResponse(responseType, responseData) {
             case "redirect":
                 response = {
                     url: responseData?.url,
-                    filename: responseData?.filename
+                    filename: responseData?.filename,
+                    ...(responseData?.postMetadata && { postMetadata: responseData.postMetadata })
                 }
                 break;
 
             case "tunnel":
                 response = {
                     url: createStream(responseData),
-                    filename: responseData?.filename
+                    filename: responseData?.filename,
+                    ...(responseData?.postMetadata && { postMetadata: responseData.postMetadata })
                 }
                 break;
 
@@ -72,6 +74,7 @@ export function createResponse(responseType, responseData) {
                     },
 
                     isHLS: responseData?.isHLS,
+                    ...(responseData?.postMetadata && { postMetadata: responseData.postMetadata })
                 }
 
                 if (!response.audio.format) {
@@ -92,7 +95,8 @@ export function createResponse(responseType, responseData) {
                 response = {
                     picker: responseData?.picker,
                     audio: responseData?.url,
-                    audioFilename: responseData?.filename
+                    audioFilename: responseData?.filename,
+                    ...(responseData?.postMetadata && { postMetadata: responseData.postMetadata })
                 }
                 break;
 

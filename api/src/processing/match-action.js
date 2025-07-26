@@ -36,6 +36,7 @@ export default function({
             subtitles: r.subtitles,
             cover: !disableMetadata ? r.cover : false,
             cropCover: !disableMetadata ? r.cropCover : false,
+            postMetadata: !disableMetadata ? r.postMetadata : false,
         },
         params = {};
 

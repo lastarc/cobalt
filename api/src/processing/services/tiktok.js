@@ -99,6 +99,26 @@ export default async function(obj) {
         if (audio.includes("mime_type=audio_mpeg")) bestAudio = 'mp3';
     }
 
+    const postMetadata = {
+        caption: detail.desc || "",
+        author: {
+            username: detail.author?.uniqueId || "",
+            displayName: detail.author?.user?.nickname || detail.author?.nickname || "",
+        },
+        createTime: detail.createTime ? new Date(detail.createTime * 1000).toISOString() : null,
+        stats: {
+            views: detail.stats?.playCount || 0,
+            likes: detail.stats?.diggCount || 0,
+            comments: detail.stats?.commentCount || 0,
+            shares: detail.stats?.shareCount || 0,
+        },
+        music: detail.music ? {
+            title: detail.music.title || "",
+            author: detail.music.authorName || "",
+            duration: detail.music.duration || 0,
+        } : null,
+    };
+
     if (video) {
         let subtitles, fileMetadata;
         if (obj.subtitleLang && detail?.video?.subtitleInfos?.length) {
@@ -118,7 +138,8 @@ export default async function(obj) {
             subtitles,
             fileMetadata,
             filename: videoFilename,
-            headers: { cookie }
+            headers: { cookie },
+            postMetadata
         }
     }
 
@@ -128,7 +149,8 @@ export default async function(obj) {
             audioFilename: audioFilename,
             isAudioOnly: true,
             bestAudio,
-            headers: { cookie }
+            headers: { cookie },
+            postMetadata
         }
     }
 
@@ -155,7 +177,8 @@ export default async function(obj) {
             audioFilename: audioFilename,
             isAudioOnly: true,
             bestAudio,
-            headers: { cookie }
+            headers: { cookie },
+            postMetadata
         }
     }
 
@@ -165,7 +188,8 @@ export default async function(obj) {
             audioFilename: audioFilename,
             isAudioOnly: true,
             bestAudio,
-            headers: { cookie }
+            headers: { cookie },
+            postMetadata
         }
     }
 
